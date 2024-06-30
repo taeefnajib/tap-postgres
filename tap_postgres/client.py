@@ -167,6 +167,8 @@ class PostgresConnector(SQLConnector):
         | th.DateType
         | th.StringType
         | th.BooleanType
+        | th.ObjectType
+        | th.ArrayType
         | th.CustomType
     ):
         """Return the JSON Schema dict that describes the sql type.
@@ -196,13 +198,65 @@ class PostgresConnector(SQLConnector):
             | th.DateType
             | th.StringType
             | th.BooleanType
+            | th.ObjectType
+            | th.ArrayType
             | th.CustomType,
         ] = {
-            "jsonb": th.CustomType(
-                {"type": ["string", "number", "integer", "array", "object", "boolean"]}
+            "jsonb": th.ObjectType(
+                properties={},
+                additional_properties=th.CustomType({
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"},
+                        {"type": "integer"},
+                        {"type": "boolean"},
+                        {
+                            "type": "object",
+                            "additionalProperties": True
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "anyOf": [
+                                    {"type": "string"},
+                                    {"type": "number"},
+                                    {"type": "integer"},
+                                    {"type": "boolean"},
+                                    {"type": "object"},
+                                    {"type": "array"}
+                                ]
+                            }
+                        }
+                    ]
+                })
             ),
-            "json": th.CustomType(
-                {"type": ["string", "number", "integer", "array", "object", "boolean"]}
+            "json": th.ObjectType(
+                properties={},
+                additional_properties=th.CustomType({
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"},
+                        {"type": "integer"},
+                        {"type": "boolean"},
+                        {
+                            "type": "object",
+                            "additionalProperties": True
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "anyOf": [
+                                    {"type": "string"},
+                                    {"type": "number"},
+                                    {"type": "integer"},
+                                    {"type": "boolean"},
+                                    {"type": "object"},
+                                    {"type": "array"}
+                                ]
+                            }
+                        }
+                    ]
+                })
             ),
             "timestamp": th.DateTimeType(),
             "datetime": th.DateTimeType(),
