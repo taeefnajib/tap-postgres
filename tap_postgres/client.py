@@ -167,8 +167,6 @@ class PostgresConnector(SQLConnector):
         | th.DateType
         | th.StringType
         | th.BooleanType
-        | th.ObjectType
-        | th.ArrayType
         | th.CustomType
     ):
         """Return the JSON Schema dict that describes the sql type.
@@ -190,6 +188,34 @@ class PostgresConnector(SQLConnector):
         # causes problems down the line with an error like:
         # singer_sdk.helpers._typing.EmptySchemaTypeError: Could not detect type from
         # empty type_dict. Did you forget to define a property in the stream schema?
+        json_schema = {
+            "type": "object",
+            "additionalProperties": {
+                "anyOf": [
+                    {"type": "string"},
+                    {"type": "number"},
+                    {"type": "integer"},
+                    {"type": "boolean"},
+                    {
+                        "type": "object",
+                        "additionalProperties": True
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "anyOf": [
+                                {"type": "string"},
+                                {"type": "number"},
+                                {"type": "integer"},
+                                {"type": "boolean"},
+                                {"type": "object"},
+                                {"type": "array"}
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
         sqltype_lookup: dict[
             str,
             th.DateTimeType
@@ -198,66 +224,10 @@ class PostgresConnector(SQLConnector):
             | th.DateType
             | th.StringType
             | th.BooleanType
-            | th.ObjectType
-            | th.ArrayType
             | th.CustomType,
         ] = {
-            "jsonb": th.ObjectType(
-                properties={},
-                additional_properties=th.CustomType({
-                    "anyOf": [
-                        {"type": "string"},
-                        {"type": "number"},
-                        {"type": "integer"},
-                        {"type": "boolean"},
-                        {
-                            "type": "object",
-                            "additionalProperties": True
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "anyOf": [
-                                    {"type": "string"},
-                                    {"type": "number"},
-                                    {"type": "integer"},
-                                    {"type": "boolean"},
-                                    {"type": "object"},
-                                    {"type": "array"}
-                                ]
-                            }
-                        }
-                    ]
-                })
-            ),
-            "json": th.ObjectType(
-                properties={},
-                additional_properties=th.CustomType({
-                    "anyOf": [
-                        {"type": "string"},
-                        {"type": "number"},
-                        {"type": "integer"},
-                        {"type": "boolean"},
-                        {
-                            "type": "object",
-                            "additionalProperties": True
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "anyOf": [
-                                    {"type": "string"},
-                                    {"type": "number"},
-                                    {"type": "integer"},
-                                    {"type": "boolean"},
-                                    {"type": "object"},
-                                    {"type": "array"}
-                                ]
-                            }
-                        }
-                    ]
-                })
-            ),
+            "jsonb": th.CustomType(json_schema),
+            "json": th.CustomType(json_schema),
             "timestamp": th.DateTimeType(),
             "datetime": th.DateTimeType(),
             "date": th.DateType(),
