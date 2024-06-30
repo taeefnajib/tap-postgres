@@ -189,30 +189,24 @@ class PostgresConnector(SQLConnector):
         # singer_sdk.helpers._typing.EmptySchemaTypeError: Could not detect type from
         # empty type_dict. Did you forget to define a property in the stream schema?
         json_schema = {
-            "type": "object",
+            "type": ["object", "array", "string", "number", "integer", "boolean", "null"],
             "additionalProperties": {
                 "anyOf": [
+                    {"type": "object", "additionalProperties": True},
+                    {"type": "array", "items": {"anyOf": [
+                        {"type": "object", "additionalProperties": True},
+                        {"type": "array"},
+                        {"type": "string"},
+                        {"type": "number"},
+                        {"type": "integer"},
+                        {"type": "boolean"},
+                        {"type": "null"}
+                    ]}},
                     {"type": "string"},
                     {"type": "number"},
                     {"type": "integer"},
                     {"type": "boolean"},
-                    {
-                        "type": "object",
-                        "additionalProperties": True
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "anyOf": [
-                                {"type": "string"},
-                                {"type": "number"},
-                                {"type": "integer"},
-                                {"type": "boolean"},
-                                {"type": "object"},
-                                {"type": "array"}
-                            ]
-                        }
-                    }
+                    {"type": "null"}
                 ]
             }
         }
